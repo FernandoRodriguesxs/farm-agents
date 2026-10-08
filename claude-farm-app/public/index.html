@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+<script defer src="./live.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+html,body{margin:0;padding:0;background:#1f4527;overflow:hidden}
+a{color:#a8441f}a:hover{color:#d0632c}
+@keyframes cfToastIn{from{transform:translateX(-24px);opacity:0}to{transform:none;opacity:1}}
+@keyframes cfPop{from{transform:translateY(8px);opacity:0}to{transform:none;opacity:1}}
+</style>
+</helmet>
+<div style="position:fixed;inset:0;overflow:hidden;background:#1f4527;font-family:'Pixelify Sans',monospace;color:#3b2417;user-select:none;-webkit-user-select:none">
+  <canvas ref="{{ canvasRef }}" style="position:absolute;inset:0;width:100%;height:100%;display:block;image-rendering:pixelated;touch-action:none"></canvas>
+
+  <sc-if value="{{ loading }}" hint-placeholder-val="{{ true }}">
+    <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none">
+      <div style="font-size:20px;color:#f3e2b8;text-shadow:2px 2px 0 #2a1d1a;letter-spacing:1px">Planting the farm…</div>
+    </div>
+  </sc-if>
+
+  <!-- top bar -->
+  <div style="position:absolute;top:14px;left:16px;right:16px;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;pointer-events:none;flex-wrap:wrap">
+    <div style="pointer-events:auto;display:flex;align-items:center;gap:14px;padding:7px 14px 7px 10px;background:#8f5d34;background-image:repeating-linear-gradient(180deg,#9c6639 0 7px,#8f5d34 7px 13px,#7a4c2a 13px 14px);box-shadow:0 -3px 0 #3b2216,0 3px 0 #3b2216,-3px 0 0 #3b2216,3px 0 0 #3b2216,inset 0 3px 0 #c98f52,inset 0 -3px 0 #5c3720,0 9px 0 rgba(0,0,0,.22)">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="width:30px;height:30px;flex:none;image-rendering:pixelated;background-size:100% 100%;background-image:{{ sproutBg }}"></div>
+        <div style="font-size:22px;font-weight:700;color:#f3e2b8;text-shadow:2px 2px 0 #3b2216;letter-spacing:.5px;white-space:nowrap">Claude Farm</div>
+      </div>
+      <div style="width:3px;align-self:stretch;background:#5c3720;box-shadow:3px 0 0 #b07a45"></div>
+      <div style="display:flex;flex-direction:column;gap:1px;padding:3px 10px;background:#f3e2b8;box-shadow:0 -2px 0 #3b2216,0 2px 0 #3b2216,-2px 0 0 #3b2216,2px 0 0 #3b2216,inset 0 -2px 0 #d8bd85">
+        <div style="font-size:10px;letter-spacing:1.5px;color:#7f4f2c;text-transform:uppercase">Project</div>
+        <div style="font-size:15px;font-weight:600;color:#3b2417;white-space:nowrap">Orchard API · v2.3</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="display:flex;gap:2px">
+          <sc-for list="{{ roster }}" as="r" hint-placeholder-count="6">
+            <div style="position:relative;width:24px;height:22px;background:#5c3720;box-shadow:inset 0 2px 0 #3b2216">
+              <sc-if value="{{ ready }}" hint-placeholder-val="{{ false }}"><img src="{{ r.mini }}" alt="" style="position:absolute;left:-2px;top:-2px;width:28px;height:24px;image-rendering:pixelated;opacity:{{ r.opacity }}"></sc-if>
+              <div style="position:absolute;right:0;bottom:0;width:6px;height:6px;background:{{ r.dot }};box-shadow:0 0 0 1px #2a1d1a"></div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="color:#f3e2b8;text-shadow:2px 2px 0 #3b2216;font-size:15px;white-space:nowrap"><span style="color:#ffe08a;font-weight:700">{{ active }}/{{ total }}</span> active</div>
+      </div>
+    </div>
+
+    <div style="pointer-events:auto;display:flex;align-items:center;gap:10px;padding:7px 14px;background:#8f5d34;background-image:repeating-linear-gradient(180deg,#9c6639 0 7px,#8f5d34 7px 13px,#7a4c2a 13px 14px);box-shadow:0 -3px 0 #3b2216,0 3px 0 #3b2216,-3px 0 0 #3b2216,3px 0 0 #3b2216,inset 0 3px 0 #c98f52,inset 0 -3px 0 #5c3720,0 9px 0 rgba(0,0,0,.22)">
+      <sc-if value="{{ ready }}" hint-placeholder-val="{{ false }}"><img src="{{ icons.sun }}" alt="" style="width:26px;height:26px;image-rendering:pixelated;display:block"></sc-if>
+      <div style="display:flex;flex-direction:column;line-height:1.05">
+        <div style="font-size:11px;letter-spacing:1.5px;color:#f6dc8e;text-shadow:1px 1px 0 #3b2216;text-transform:uppercase">Spring 14 · {{ timeLabel }}</div>
+        <div style="font-size:19px;font-weight:700;color:#f3e2b8;text-shadow:2px 2px 0 #3b2216;min-width:84px">{{ clock }}</div>
+      </div>
+      <sc-if value="{{ paused }}" hint-placeholder-val="{{ false }}">
+        <div style="font-size:12px;padding:2px 6px;background:#a8441f;color:#f3e2b8;box-shadow:0 0 0 2px #3b2216">PAUSED</div>
+      </sc-if>
+    </div>
+  </div>
+
+  <!-- toasts -->
+  <div style="position:absolute;left:16px;top:96px;display:flex;flex-direction:column;gap:12px;pointer-events:none;max-width:340px">
+    <sc-for list="{{ toasts }}" as="t" hint-placeholder-count="0">
+      <div style="display:flex;gap:10px;align-items:center;padding:8px 12px 8px 8px;background:#f3e2b8;box-shadow:0 -3px 0 #3b2216,0 3px 0 #3b2216,-3px 0 0 #3b2216,3px 0 0 #3b2216,inset 3px 3px 0 #fbf0d0,inset -3px -3px 0 #d8bd85,0 8px 0 rgba(0,0,0,.2);animation:cfToastIn .28s steps(4) both">
+        <div style="flex:none;width:36px;height:34px;background:#6cb651;box-shadow:0 0 0 2px #3b2216,inset 0 -6px 0 #55a046;position:relative;overflow:hidden">
+          <sc-if value="{{ ready }}" hint-placeholder-val="{{ false }}"><img src="{{ t.mini }}" alt="" style="position:absolute;left:1px;top:2px;width:35px;height:30px;image-rendering:pixelated"></sc-if>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:1px;min-width:0">
+          <div style="display:flex;gap:8px;align-items:baseline"><span style="font-weight:700;font-size:14px;color:#7a2f17">{{ t.name }}</span><span style="font-size:11px;color:#87582f">{{ t.time }}</span></div>
+          <div style="font-size:14px;line-height:1.2;color:#3b2417;text-wrap:pretty">{{ t.text }}</div>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+
+  <!-- agent panel -->
+  <sc-if value="{{ hasSel }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;right:20px;top:100px;width:312px;max-height:calc(100% - 210px);overflow:auto;padding:16px;background:#f3e2b8;box-shadow:0 -4px 0 #3b2216,0 4px 0 #3b2216,-4px 0 0 #3b2216,4px 0 0 #3b2216,inset 4px 4px 0 #fbf0d0,inset -4px -4px 0 #d8bd85,0 10px 0 rgba(0,0,0,.22);animation:cfPop .22s steps(3) both;display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;gap:14px;align-items:flex-start">
+        <div style="flex:none;padding:4px;background:#7f4f2c;box-shadow:0 0 0 3px #3b2216,inset 0 3px 0 #a46b3b">
+          <canvas ref="{{ portraitRef }}" width="32" height="32" style="display:block;width:96px;height:96px;image-rendering:pixelated"></canvas>
+        </div>
+        <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px">
+            <div style="font-size:26px;font-weight:700;line-height:1;color:#3b2417">{{ sel.name }}</div>
+            <div onClick="{{ closePanel }}" style="cursor:pointer;width:24px;height:24px;display:flex;align-items:center;justify-content:center;background:#d0632c;color:#f3e2b8;font-size:15px;font-weight:700;box-shadow:0 0 0 2px #3b2216,inset 0 -3px 0 #a8441f" style-hover="background:#ec8744">×</div>
+          </div>
+          <div style="font-size:14px;color:#7f4f2c">{{ sel.role }}</div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:4px;padding:3px 8px;align-self:flex-start;background:#3b2216;color:#f3e2b8;font-size:13px">
+            <div style="width:8px;height:8px;background:{{ selDot }}"></div>{{ sel.statusText }}
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:6px;padding:10px 12px;background:#fbf0d0;box-shadow:0 0 0 2px #c9a76a">
+        <div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#87582f">Current task</div>
+        <div style="font-size:16px;line-height:1.2;text-wrap:pretty">{{ sel.task }}</div>
+        <div style="display:none;align-items:center;gap:8px;margin-top:2px">
+          <div style="display:flex;gap:2px;flex:1">
+            <sc-for list="{{ progSegs }}" as="p" hint-placeholder-count="12">
+              <div style="flex:1;height:10px;background:{{ p.c }};box-shadow:inset 0 -2px 0 {{ p.s }}"></div>
+            </sc-for>
+          </div>
+          <div style="font-size:13px;font-weight:600;min-width:34px;text-align:right">{{ sel.progress }}%</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px">
+        <div style="display:none;flex-direction:column;gap:5px">
+          <div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#87582f">Energy</div>
+          <div style="display:flex;gap:2px">
+            <sc-for list="{{ energySegs }}" as="e" hint-placeholder-count="8">
+              <div style="flex:1;height:10px;background:{{ e.c }};box-shadow:inset 0 -2px 0 {{ e.s }}"></div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:3px">
+          <div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#87582f">Workplace</div>
+          <div style="font-size:14px">{{ sel.home }}</div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#87582f">Journal</div>
+        <sc-for list="{{ selLogs }}" as="l" hint-placeholder-count="4">
+          <div style="display:flex;gap:10px;font-size:13px;line-height:1.25;padding-bottom:5px;box-shadow:0 2px 0 #e3c98f">
+            <div style="flex:none;width:58px;color:#87582f">{{ l.time }}</div>
+            <div style="flex:1;min-width:0;text-wrap:pretty">{{ l.text }}</div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display:flex;gap:10px">
+        <div onClick="{{ toggleFollow }}" style="flex:1;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 0;font-size:15px;font-weight:600;color:#f3e2b8;text-shadow:1px 1px 0 #3b2216;background:{{ followBg }};box-shadow:0 0 0 3px #3b2216,inset 0 3px 0 rgba(255,255,255,.25),inset 0 -3px 0 rgba(0,0,0,.25)" style-hover="filter:brightness(1.08)">
+          <sc-if value="{{ ready }}" hint-placeholder-val="{{ false }}"><img src="{{ icons.follow }}" alt="" style="width:18px;height:18px;image-rendering:pixelated"></sc-if>{{ followLabel }}
+        </div>
+        <div onClick="{{ sendNote }}" style="flex:1;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 0;font-size:15px;font-weight:600;color:#f3e2b8;text-shadow:1px 1px 0 #3b2216;background:#7f4f2c;box-shadow:0 0 0 3px #3b2216,inset 0 3px 0 #a46b3b,inset 0 -3px 0 #5c3720" style-hover="background:#a46b3b">
+          <sc-if value="{{ ready }}" hint-placeholder-val="{{ false }}"><img src="{{ icons.chat }}" alt="" style="width:18px;height:18px;image-rendering:pixelated"></sc-if>Dar tarefa
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- roster popover -->
+  <sc-if value="{{ rosterOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;left:50%;bottom:104px;transform:translateX(-50%);width:340px;max-width:calc(100% - 40px);padding:12px;background:#f3e2b8;box-shadow:0 -3px 0 #3b2216,0 3px 0 #3b2216,-3px 0 0 #3b2216,3px 0 0 #3b2216,inset 3px 3px 0 #fbf0d0,inset -3px -3px 0 #d8bd85,0 9px 0 rgba(0,0,0,.22);display:flex;flex-direction:column;gap:4px;animation:cfPop .2s steps(3) both">
+      <div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#87582f;padding:0 4px 4px">Farmhands</div>
+      <sc-for list="{{ roster }}" as="r" hint-placeholder-count="6">
+        <div onClick="{{ r.pick }}" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:5px 6px" style-hover="background:#e3c98f">
+          <div style="flex:none;width:30px;height:28px;background:#6cb651;box-shadow:0 0 0 2px #3b2216;position:relative;overflow:hidden"><sc-if value="{{ ready }}" hint-placeholder-val="{{ false }}"><img src="{{ r.mini }}" alt="" style="position:absolute;left:0;top:1px;width:30px;height:26px;image-rendering:pixelated"></sc-if></div>
+          <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+            <div style="font-size:15px;font-weight:600">{{ r.name }}</div>
+            <div style="font-size:12px;color:#7f4f2c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.role }} · {{ r.statusText }}</div>
+          </div>
+          <div style="width:8px;height:8px;background:{{ r.dot }};box-shadow:0 0 0 2px #3b2216"></div>
+        </div>
+      </sc-for>
+    </div>
+  </sc-if>
+
+  <!-- hotbar -->
+  <div style="position:absolute;left:50%;bottom:18px;transform:translateX(-50%);display:flex;gap:6px;padding:8px;background:#8f5d34;background-image:repeating-linear-gradient(180deg,#9c6639 0 8px,#8f5d34 8px 15px,#7a4c2a 15px 16px);box-shadow:0 -3px 0 #3b2216,0 3px 0 #3b2216,-3px 0 0 #3b2216,3px 0 0 #3b2216,inset 0 3px 0 #c98f52,inset 0 -3px 0 #5c3720,0 9px 0 rgba(0,0,0,.22)">
+    <sc-for list="{{ slots }}" as="s" hint-placeholder-count="7">
+      <div onClick="{{ s.onClick }}" title="{{ s.label }}" style="position:relative;cursor:pointer;width:50px;height:50px;display:flex;align-items:center;justify-content:center;background:{{ s.bg }};box-shadow:0 0 0 3px {{ s.ring }},inset 3px 3px 0 #f7e7bf,inset -3px -3px 0 #c9a76a" style-hover="filter:brightness(1.07)">
+        <sc-if value="{{ ready }}" hint-placeholder-val="{{ false }}"><img src="{{ s.icon }}" alt="{{ s.label }}" style="width:36px;height:36px;image-rendering:pixelated;display:block"></sc-if>
+        <div style="position:absolute;left:4px;top:2px;font-size:10px;color:#87582f">{{ s.num }}</div>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="position:absolute;left:16px;bottom:22px;padding:6px 10px;background:rgba(42,29,26,.72);color:#f3e2b8;font-size:12px;line-height:1.35;pointer-events:none;max-width:220px">Drag to pan · Scroll to zoom<br>WASD to move · Click a farmhand</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;timeOfDay&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Morning&quot;,&quot;Noon&quot;,&quot;Dusk&quot;,&quot;Night&quot;],&quot;default&quot;:&quot;Morning&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;World&quot;},&quot;showLabels&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;World&quot;},&quot;simSpeed&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;min&quot;:0.5,&quot;max&quot;:3,&quot;step&quot;:0.5,&quot;default&quot;:1,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;World&quot;}}">
+class Component extends DCLogic {
+  state = { ready:false, selected:null, toasts:[], clock:'8:42 AM', active:5, total:6, mode:'select', paused:false, roster:false, follow:false, tick:0 };
+  canvasRef = React.createRef();
+  portraitRef = React.createRef();
+  componentDidMount(){
+    const url = new URL('./farm-engine.js', document.baseURI).href;
+    import(url).then(m => {
+      if (this.dead) return;
+      this.icons = m.makeUIIcons();
+      this.eng = m.createFarm({
+        canvas: this.canvasRef.current,
+        portrait: () => this.portraitRef.current,
+        getOpts: () => ({ timeOfDay: this.props.timeOfDay ?? 'Morning', showLabels: this.props.showLabels ?? true, simSpeed: this.props.simSpeed ?? 1 }),
+        onSelect: id => this.setState({ selected:id, follow:false, roster:false }),
+        onToast: t => this.pushToast(t),
+        onChange: () => this.setState(s => ({ tick:s.tick+1 })),
+        onFollow: v => this.setState({ follow:v })
+      });
+      window.__farm = this.eng;
+      this.minis = {};
+      this.eng.agents().forEach(a => this.minis[a.id] = this.eng.mini(a.id));
+      this.setState({ ready:true, total:this.eng.total });
+      this.iv = setInterval(() => this.setState(s => ({ clock:this.eng.clock(), active:this.eng.activeCount(), tick:s.tick+1 })), 500);
+      setTimeout(() => this.pushToast({ agentId:'juniper', name:'Juniper', text:'Good morning! Sprint 14 is underway.', time:this.eng.clock() }), 900);
+    });
+    this.onKey = e => {
+      if (e.target && /INPUT|TEXTAREA/.test(e.target.tagName)) return;
+      if (e.key === 'Escape') { this.setState({ roster:false }); this.selectAgent(null); }
+      const n = parseInt(e.key, 10);
+      if (n >= 1 && n <= 7) { const sl = this.slotDefs()[n-1]; sl && sl.onClick(); }
+      if (e.key === '+' || e.key === '=') this.eng && this.eng.zoomIn();
+      if (e.key === '-') this.eng && this.eng.zoomOut();
+      if (e.key === 'f' && this.state.selected) this.toggleFollow();
+    };
+    window.addEventListener('keydown', this.onKey);
+  }
+  componentWillUnmount(){ this.dead = true; clearInterval(this.iv); window.removeEventListener('keydown', this.onKey); this.eng && this.eng.destroy(); }
+  pushToast(t){
+    const id = Math.random().toString(36).slice(2);
+    const item = { ...t, id, mini: this.minis ? this.minis[t.agentId] : '' };
+    this.setState(s => ({ toasts:[...s.toasts, item].slice(-4) }));
+    setTimeout(() => this.setState(s => ({ toasts:s.toasts.filter(x => x.id !== id) })), 6000);
+  }
+  selectAgent(id){ if (!this.eng) return; this.eng.select(id); }
+  toggleFollow = () => { const v = !this.state.follow; this.eng && this.eng.setFollow(v); this.setState({ follow:v }); };
+  slotDefs(){
+    const e = this.eng; const st = this.state;
+    return [
+      { key:'select', label:'Select (1)', onClick:() => { e && e.setMode('select'); this.setState({ mode:'select' }); } },
+      { key:'pan', label:'Pan (2)', onClick:() => { e && e.setMode('pan'); this.setState({ mode:'pan' }); } },
+      { key:'agents', label:'Farmhands (3)', onClick:() => this.setState(s => ({ roster:!s.roster })) },
+      { key:'zoomout', label:'Zoom out (4)', onClick:() => e && e.zoomOut() },
+      { key:'zoomin', label:'Zoom in (5)', onClick:() => e && e.zoomIn() },
+      { key:'home', label:'Recenter (6)', onClick:() => { e && e.home(); this.setState({ follow:false }); } },
+      { key:st.paused ? 'play' : 'pause', label:st.paused ? 'Resume (7)' : 'Pause (7)', onClick:() => { const v = !this.state.paused; e && e.setPaused(v); this.setState({ paused:v }); } },
+    ];
+  }
+  renderVals(){
+    const st = this.state, e = this.eng, ic = this.icons || {};
+    const dotFor = m => ({ work:'#7be05a', walk:'#ffd36b', talk:'#ec8744', inside:'#76b9e6', sleep:'#b8a6f0', idle:'#ffd36b' })[m] || '#ffd36b';
+    const list = e ? e.agents() : [];
+    const roster = list.map(a => ({ ...a, mini:this.minis[a.id], dot:dotFor(a.mode), opacity:a.mode === 'sleep' ? .55 : 1,
+      pick:() => { this.selectAgent(a.id); setTimeout(() => { this.eng.setFollow(true); this.setState({ follow:true, roster:false }); }, 0); } }));
+    const sel = st.selected && e ? e.get(st.selected) : null;
+    const filled = sel ? Math.round(sel.progress / 100 * 12) : 0;
+    const efilled = sel ? Math.round(sel.energy / 100 * 8) : 0;
+    const active = ['select','pan','agents'];
+    const slots = this.slotDefs().map((s, i) => {
+      const on = (s.key === st.mode) || (s.key === 'agents' && st.roster) || ((s.key === 'play') && st.paused);
+      return { ...s, num:i+1, icon:ic[s.key === 'agents' ? 'agents' : s.key === 'select' ? 'cursor' : s.key], bg:on ? '#f6dc8e' : '#e8cf98', ring:on ? '#d0632c' : '#3b2216' };
+    });
+    const tod = this.props.timeOfDay ?? 'Morning';
+    return {
+      canvasRef:this.canvasRef, portraitRef:this.portraitRef, loading:!st.ready, ready:st.ready, sproutBg:ic.sprout ? `url(${ic.sprout})` : 'none', icons:ic,
+      roster, active:st.active, total:st.total, clock:st.clock, paused:st.paused, timeLabel:tod,
+      toasts:st.toasts, hasSel:!!sel, sel:sel || {}, selDot:sel ? dotFor(sel.mode) : '#fff',
+      progSegs:Array.from({ length:12 }, (_, i) => i < filled ? { c:'#6cb651', s:'#3c7d3a' } : { c:'#e3c98f', s:'#c9a76a' }),
+      energySegs:Array.from({ length:8 }, (_, i) => i < efilled ? { c:'#ffd36b', s:'#c49a2c' } : { c:'#e3c98f', s:'#c9a76a' }),
+      selLogs:sel ? sel.logs : [],
+      closePanel:() => this.selectAgent(null),
+      toggleFollow:this.toggleFollow, followBg:st.follow ? '#d0632c' : '#4c7a3a', followLabel:st.follow ? 'Following' : 'Follow',
+      sendNote:() => { if (!sel) return; window.dispatchEvent(new CustomEvent('farm-select',{detail:sel.id})); document.getElementById('agent-prompt')?.focus(); },
+      rosterOpen:st.roster, slots
+    };
+  }
+}
+</script>
+</body>
+</html>
