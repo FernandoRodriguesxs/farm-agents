@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Entrar · Claude Farm</title>
+  <link rel="stylesheet" href="/login.css">
+  <script defer src="/login.js"></script>
+</head>
+<body>
+  <main class="login-layout">
+    <section class="welcome" aria-labelledby="welcome-title">
+      <a class="brand" href="/">✿ Claude Farm</a>
+      <div class="welcome-copy">
+        <span class="eyebrow">UM NOVO DIA NA FAZENDA</span>
+        <h1 id="welcome-title">Grandes ideias.<br>Uma boa colheita.</h1>
+        <p>Seu projeto cresce com uma equipe que trabalha junto. Entre e acompanhe cada nova tarefa florescer.</p>
+      </div>
+      <div class="landscape" aria-hidden="true"><div class="sun"></div><div class="hill hill-back"></div><div class="hill hill-front"></div><div class="garden">✿ &nbsp; ✿ &nbsp; ✿</div></div>
+      <span class="season">● Uma estação cheia de possibilidades</span>
+    </section>
+    <section class="login-panel" aria-labelledby="login-title">
+      <div class="card">
+        <span class="badge">BEM-VINDO DE VOLTA</span>
+        <h2 id="login-title">Entre na sua fazenda</h2>
+        <p class="intro">Tudo pronto para cultivar sua próxima ideia?</p>
+        <form id="login-form" aria-describedby="demo-note">
+          <label for="email">E-mail</label>
+          <input id="email" name="email" type="email" autocomplete="username" placeholder="voce@exemplo.com" maxlength="254" required>
+          <label for="password">Senha</label>
+          <div class="password-field">
+            <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Digite sua senha" required>
+            <button id="toggle-password" type="button" aria-controls="password" aria-pressed="false">Mostrar</button>
+          </div>
+          <p id="demo-note" class="demo-note">Modo demonstrativo: use dados fictícios. A entrada apenas abre a fazenda; não há autenticação e os dados não são enviados nem salvos.</p>
+          <button class="submit" type="submit">Entrar na demonstração <span aria-hidden="true">→</span></button>
+          <p id="login-status" role="status" aria-live="polite"></p>
+        </form>
+        <div class="divider"><span>ou explore primeiro</span></div>
+        <a class="guest" href="/">Visitar a fazenda sem preencher</a>
+        <noscript><p>O formulário precisa de JavaScript. Use o link acima para visitar a fazenda.</p></noscript>
+      </div>
+      <p class="footer">Uma tarefa de cada vez. Uma ideia a mais.</p>
+    </section>
+  </main>
+</body>
+</html>
